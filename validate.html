@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WoW Gildenquiz – Code Validierung</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css" />
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #0a0a0a;
+            color: #f0f0f0;
+            font-family: 'Cinzel', serif;
+            text-align: center;
+        }
+        header, footer {
+            background-color: #111;
+            color: #ffd700;
+            padding: 20px;
+        }
+        main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .box {
+            max-width: 400px;
+            width: 100%;
+            background: rgba(30, 30, 30, 0.85);
+            border: 2px solid #ffd700;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+            padding: 30px;
+        }
+        input {
+            padding: 10px;
+            width: 80%;
+            margin: 5px 0;
+            border-radius: 8px;
+            border: none;
+            text-align: center;
+        }
+        button {
+            background-color: #ffd700;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #e6c200;
+        }
+        #output {
+            margin-top: 20px;
+            font-size: 1.2em;
+            color: #ffd700;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>🔒 Code Validierung</h1>
+    </header>
+
+    <main>
+        <div class="box">
+            <h2>Validierungscode prüfen</h2>
+            <p>Gib den Namen und die erreichte Punktzahl ein:</p>
+            <input type="text" id="playerName" placeholder="Name"><br>
+            <input type="number" id="score" placeholder="Punktzahl"><br>
+            <button onclick="validateCode()">Code berechnen</button>
+            <div id="output"></div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 WoW Gildenquiz</p>
+    </footer>
+
+    <script>
+        function generateValidationCode(name, score) {
+            let input = String(name) + String(score);
+            let hash = 0;
+            for (let i = 0; i < input.length; i++) {
+                hash = ((hash << 5) - hash) + input.charCodeAt(i);
+                hash |= 0;
+            }
+            return Math.abs(hash).toString(16).padStart(6, "0").substring(0, 6).toUpperCase();
+        }
+
+        function validateCode() {
+            const name = document.getElementById("playerName").value.trim();
+            const score = parseInt(document.getElementById("score").value.trim(), 10);
+
+            if (!name || isNaN(score)) {
+                document.getElementById("output").innerHTML = "<span style='color:red;'>Bitte Name und Punktzahl eingeben!</span>";
+                return;
+            }
+
+            const code = generateValidationCode(name, score);
+            document.getElementById("output").innerHTML = 
+                `Der gültige Code für <strong>${name}</strong> mit <strong>${score}</strong> Punkten lautet:<br><br><span style="font-size:1.5em;">${code}</span>`;
+        }
+    </script>
+</body>
+</html>

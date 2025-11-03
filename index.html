@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WoW Gildenquiz</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css" />
+    <!-- WICHTIG: questions.js zuerst laden, ohne defer -->
+    <script src="questions.js"></script>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #0a0a0a;
+            color: #f0f0f0;
+            font-family: 'Cinzel', serif;
+        }
+        header, footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #111;
+            color: #ffd700;
+        }
+        main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+        .centered {
+            max-width: 600px;
+            width: 100%;
+            background: rgba(30, 30, 30, 0.85);
+            border: 2px solid #ffd700;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+            padding: 30px;
+            text-align: center;
+        }
+        input[type="text"] {
+            padding: 8px;
+            width: 80%;
+            border-radius: 8px;
+            border: none;
+            text-align: center;
+        }
+        button {
+            background-color: #ffd700;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #e6c200;
+        }
+        .hidden { display: none; }
+        .answers button {
+            display: block;
+            width: 100%;
+            margin: 6px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>World of Warcraft Gildenquiz</h1>
+    </header>
+
+    <main>
+        <section id="introScreen" class="centered">
+            <h1>🏰 WoW Gildenquiz</h1>
+
+        <!-- Zugangscode -->
+        <div id="access">
+            <p>Bitte Zugangscode eingeben:</p>
+            <input type="text" id="accessCode" placeholder="Zugangscode">
+            <br><button onclick="checkAccess()">Weiter</button>
+            <p id="accessError" style="color: red;"></p>
+        </div>
+
+        <!-- Namenseingabe -->
+        <div id="nameInput" class="hidden">
+            <p>Willkommen! Bitte gib deinen Namen ein:</p>
+            <input type="text" id="playerName" placeholder="Dein Name">
+            <br><button onclick="startQuiz()">Quiz starten</button>
+        </div>
+
+        <!-- Quiz -->
+        <div id="quiz" class="hidden">
+            <div id="questionContainer"></div>
+            <div class="timer">⏳ <span id="timer">30</span> Sekunden</div>
+        </div>
+
+        <!-- Ergebnis -->
+        <div id="result" class="hidden">
+            <h2>🏆 Ergebnis</h2>
+            <p id="resultText"></p>
+            <p id="codeText"></p>
+        </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 WoW Gildenquiz</p>
+    </footer>
+
+    <!-- Unser Quiz-Script NACH questions.js, ohne defer -->
+    <script>
+        // ---- Globale Variablen ----
+        const accessCode = "wowgilde2025";
+        const quizTime = 30;
+        let questions = window.allQuestions;
+        let currentIndex = 0;
+        let score = 0;
+        let timerInterval;
+        let remainingTime = quizTime;
+        let playerName = "";
+  
+        const escapeHTML = str =>
+            str.replace(
+                /[&<>'"]/g,
+                tag =>
+                ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    "'": '&#39;',
+                    '"': '&quot;'
+                }[tag] || tag)
+            );
+
+        const unescapeHTML = str =>
+            str.replace(
+                /&amp;|&lt;|&gt;|&#39;|&quot;/g,
+                tag =>
+                ({
+                    '&amp;': '&',
+                    '&lt;': '<',
+                    '&gt;': '>',
+                    '&#39;': "'",
+                    '&quot;': '"'
+                }[tag] || tag)
+            );
+
+
+                // --- Zugangscode prüfen ---
+        function checkAccess() {
+            const codeInput = document.getElementById("accessCode").value.trim();
+            if (codeInput === accessCode) {
+                document.getElementById("access").classList.add("hidden");
+                document.getElementById("nameInput").classList.remove("hidden");
+            } else {
+                document.getElementById("accessError").innerText = "❌ Falscher Code!";
+            }
+        }
+
+
+        // Quelle der Fragen: alle Kategorien kombiniert aus questions.js
+        // Fallback: wenn allQuestions nicht existiert, versuche quizCategories zu kombinieren
+        function getAllQuestions() {
+            if (Array.isArray(window.allQuestions) && window.allQuestions.length) {
+                return window.allQuestions.slice();
+            }
+            if (window.quizCategories) {
+                try {
+                    return [].concat(
+                        window.quizCategories["Allgemein"] || [],
+                        window.quizCategories["AddOns"] || [],
+                        window.quizCategories["Pets and Mounts"] || [],
+                        window.quizCategories["Achievements"] || [],
+                        window.quizCategories["Races and Classes"] || [],
+                        window.quizCategories["Dungeons and Raids"] || [],
+                        window.quizCategories["Quests and Regions"] || [],
+                        window.quizCategories["NPCs"] || [],
+                        window.quizCategories["Items & Currencys"] || []
+                    );
+                } catch (e) {
+                    console.error("Konnte quizCategories nicht kombinieren:", e);
+                    return [];
+                }
+            }
+            return [];
+        }
+
+        // Sicherstellen, dass es Fragen gibt
+        if (!Array.isArray(questions) || questions.length === 0) {
+            console.warn("Es wurden keine Fragen gefunden. Bitte prüfe questions.js");
+        }
+
+        // 6-stelliger Hex-Hash aus Name + Punktzahl
+        function generateValidationCode(name, score) {
+            let input = String(name) + String(score);
+            let hash = 0;
+            for (let i = 0; i < input.length; i++) {
+                hash = ((hash << 5) - hash) + input.charCodeAt(i);
+                hash |= 0;
+            }
+            return Math.abs(hash).toString(16).padStart(6, "0").substring(0, 6).toUpperCase();
+        }
+
+        // --- Quiz starten ---
+        function startQuiz() {
+            playerName = document.getElementById("playerName").value.trim();
+            if (playerName === "") return alert("Bitte gib deinen Namen ein!");
+
+            document.getElementById("nameInput").classList.add("hidden");
+            document.getElementById("quiz").classList.remove("hidden");
+            currentIndex = 0;
+            score = 0;
+            loadQuestion();
+        }
+
+        // --- Frage laden ---
+        function loadQuestion() {
+
+            if (currentIndex >= questions.length) {
+                return showResult();
+            }
+
+            const q = questions[currentIndex];
+            const container = document.getElementById("questionContainer");
+
+            // HTML aufbauen ohne onclick-Attribute
+            let html = `<h3>${escapeHTML(q.question)}</h3><div class="answers">`;
+            q.answers.forEach(a => {
+                html += `<button class="answer-btn" data-answer="${escapeHTML(a)}">${escapeHTML(a)}</button>`;
+            });
+            html += `</div>`;
+
+            container.innerHTML = html;
+
+            // Klick-Events zu allen Antwort-Buttons hinzufügen
+            container.querySelectorAll(".answer-btn").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    const selectedAnswer = unescapeHTML(btn.dataset.answer);
+                    answerQuestion(selectedAnswer);
+                });
+            });
+
+            // Timer starten
+            remainingTime = quizTime;
+            document.getElementById("timer").innerText = remainingTime;
+
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                remainingTime--;
+                document.getElementById("timer").innerText = remainingTime;
+                if (remainingTime <= 0) {
+                    clearInterval(timerInterval);
+                    nextQuestion();
+                }
+            }, 1000);
+
+  
+        }
+
+        function answerQuestion(answer) {
+            const correct = questions[currentIndex].correct;
+            if (answer === correct) {
+                    score++;
+                } else {
+                    console.log(`Antwort falsch: "${answer}" (richtig wäre: "${correct}")`);
+                }
+            nextQuestion();
+        }
+
+        function nextQuestion() {
+            clearInterval(timerInterval);
+            currentIndex++;
+            loadQuestion();
+        }
+
+        function showResult() {
+            document.getElementById("quiz").classList.add("hidden");
+            document.getElementById("result").classList.remove("hidden");
+
+            const code = generateValidationCode(playerName, score);
+            document.getElementById("resultText").innerHTML =
+                `<strong>${playerName}</strong>, du hast <strong>${score}</strong> Punkte erreicht.`;
+            document.getElementById("codeText").innerHTML =
+                `Dein Validierungscode: <strong style="color:#ffd700;">${code}</strong>`;
+        }
+
+        // Button-Handler nach DOM-Load setzen
+        document.addEventListener("DOMContentLoaded", function() {
+            const btn = document.getElementById("startBtn");
+            if (btn) btn.addEventListener("click", startQuiz);
+        });
+    </script>
+</body>
+</html>
