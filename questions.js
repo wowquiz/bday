@@ -29,7 +29,6 @@ window.quizCategories = {
         { question: "Welches ist keine Rasse der Horde?", answers: ["Goblin", "Gnom", "Blutelf", "Untote"], correct: "Gnom" },
         { question: "Was war die erste neue spielbare Klasse nach Classic?", answers: ["Dämonenjäger", "Todesritter", "Mönch", "Jäger"], correct: "Todesritter" },
         { question: "Welche Farbe hat das Mana von Schamanen?", answers: ["Blau", "Gelb", "Rot", "Grün"], correct: "Blau" },
-        { question: "Welches Volk lebt in Silbermond?", answers: ["Blutelfen", "Hochelfen", "Nachtelfen", "Leerenelfen"], correct: "Blutelfen" },
     ],
     "Dungeons and Raids": [
         { question: "Wie viele Flügel hat Naxxramas?", answers: ["3", "4", "5", "6"], correct: "4" },
@@ -48,7 +47,7 @@ window.quizCategories = {
         { question: "Welcher Boss im Grabmal des Sargeras war ein Dämonenlord, der die Brennende Legion anführte?", answers: ["Kil'jaeden", "Archimonde", "Gul'dan", "Sargeras"], correct: "Kil'jaeden" },
         { question: "Welcher alte Gott lag unter Ulduar?", answers: ["C'Thun", "N'Zoth", "Yogg-Saron", "Y'Shaarj"], correct: "Yogg-Saron" },
         { question: "Welcher bekannte Charakter ist nicht Teil der Windläufer-Familie?", answers: ["Alleria", "Sylvanas", "Vereesa", "Tyrande"], correct: "Tyrande" },
-        { question: "Wie hieß die Orc-Frau, die Thrall in Durnholde erzogen hat?", answers: ["Draka", "Aggra", "Taretha", "Geyah"], correct: "Taretha" },
+        { question: "Wie hieß die Frau, die Thrall in Durnholde erzogen hat?", answers: ["Draka", "Aggra", "Taretha", "Geyah"], correct: "Taretha" },
     ],
     "Items & Currencys": [
         { question: "Welches legendäre Item bekam man in Wrath of the Lich King?", answers: ["Donnerzorn", "Schattengram", "Atiesh", "Sulfuras"], correct: "Schattengram" },
